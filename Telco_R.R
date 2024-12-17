@@ -10,7 +10,7 @@ library(arulesViz)   # Visualisasi untuk model association
 
 # 1. IMPORT DATA AWAL
 # ================================
-data <- read.csv("C:/Users/anast/OneDrive/Documents/ITE/SEMESTER 3/DAP/telcoo.csv")
+data <- read.csv("path kalian menyimpan data/telcoo.csv")
 
 # Melihat struktur data
 str(data)
@@ -20,11 +20,13 @@ summary(data)
 # 2. PENGECEKAN DATA DUPLIKAT & MISSING VALUES 
 # ================================
 # Mengecek data duplikat
-data[duplicated(data) | duplicated(data, fromLast = TRUE)]
+duplicates <- data[duplicated(data) | duplicated(data, fromLast = TRUE)]
+cat("Data duplikat:\n", duplicates)
 
 # Mengecek missing values
 cat("Total data yang hilang:", sum(is.na(data)), "\n")
-colSums(is.na(data))  # Missing values per kolom
+missing_values_per_column <- colSums(is.na(data))  # Missing values per kolom
+print(missing_values_per_column)
 
 # Menghapus baris dengan NA di kolom penting (misal: `TotalCharges`)
 cust_bersih <- data[complete.cases(data), ]
@@ -33,7 +35,8 @@ cat("Nilai yang hilang setelah dibersihkan:", sum(is.na(cust_bersih)), "\n")
 # 3. MENGUBAH TIPE DATA DAN MENYERAGAMKAN NAMA KOLOM
 # ================================
 # Menyeragamkan nama kolom
-names(cust_bersih)[names(cust_bersih) == "customerID"] <- "CustomerID"
+names(cust_bersih) <- tolower(names(cust_bersih))
+names(cust_bersih)[names(cust_bersih) == "customerid"] <- "CustomerID"
 names(cust_bersih)[names(cust_bersih) == "gender"] <- "Gender"
 names(cust_bersih)[names(cust_bersih) == "tenure"] <- "Tenure"
 
@@ -63,9 +66,7 @@ ggplot(cust_bersih, aes(x = Churn, fill = Churn)) +
   geom_bar() +
   labs(title = "Keputusan Pemberhentian Langganan", x = "", y = "Jumlah Customer") +
   theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  scale_fill_manual(values = c("No" = "seagreen3", "Yes" = "coral2")) +
-  guides(fill = FALSE)
+  scale_fill_manual(values = c("No" = "seagreen3", "Yes" = "coral2"))
 
 # Distribusi churn berdasarkan Gender
 ggplot(cust_bersih, aes(x = Gender, fill = Churn)) +
@@ -79,25 +80,21 @@ ggplot(cust_bersih, aes(x = Churn, y = MonthlyCharges, fill = Churn)) +
   labs(title = "Distribusi MonthlyCharges Berdasarkan Churn", x = "Churn", y = "Monthly Charges") +
   theme_minimal()
 
-# Keputusan Pemberhentian Langganan berdasarkan Durasi Berlangganan (dalam Bulan)
+# Histogram Durasi Berlangganan berdasarkan Churn
 ggplot(cust_bersih, aes(x = Tenure, fill = Churn)) +
   geom_histogram(binwidth = 5, color = "black", position = "dodge") +
   facet_wrap(~ Churn) +
-  labs(title = "Keputusan Pemberhentian Langganan berdasarkan Durasi Berlangganan (dalam Bulan)",
-       x = "Durasi Berlangganan (Bulan)",
-       y = "Jumlah Customer") +
-  theme_minimal() +
-  scale_fill_manual(values = c("No" = "seagreen3", "Yes" = "coral2"))
+  labs(title = "Keputusan Pemberhentian Langganan Berdasarkan Durasi Berlangganan (Bulan)",
+       x = "Durasi Berlangganan (Bulan)", y = "Jumlah Customer") +
+  theme_minimal()
 
-# Keputusan Pemberhentian Langganan berdasarkan Jumlah Tagihan Per Bulan
+# Histogram Jumlah Tagihan Per Bulan
 ggplot(cust_bersih, aes(x = MonthlyCharges, fill = Churn)) +
   geom_histogram(binwidth = 5, color = "black", position = "dodge") +
   facet_wrap(~ Churn) +
-  labs(title = "Keputusan Pemberhentian Langganan berdasarkan Jumlah Tagihan Per Bulan",
-       x = "Jumlah Tagihan Per Bulan",
-       y = "Jumlah Customer") +
-  theme_minimal() +
-  scale_fill_manual(values = c("No" = "seagreen3", "Yes" = "coral2"))
+  labs(title = "Keputusan Pemberhentian Langganan Berdasarkan Jumlah Tagihan Per Bulan",
+       x = "Jumlah Tagihan Per Bulan", y = "Jumlah Customer") +
+  theme_minimal()
 
 # 5. ANALISIS ASSOCIATION RULES
 # ================================
@@ -108,26 +105,13 @@ cust_bersih_1 <- cust_bersih %>% select(PhoneService, InternetService, OnlineSec
 cust_bersih_1.tr <- as(cust_bersih_1, "transactions")
 
 # Membuat grafik frekuensi item
-itemFrequencyPlot(cust_bersih_1.tr, 
-                  topN = 15,                # Menampilkan 15 item teratas
-                  type = "absolute",        # Menampilkan frekuensi dalam jumlah absolut
-                  ylim = c(0, 7000),        # Mengatur batas y-axis dari 0 hingga 7000
-                  main = "Top 15 Layanan Telco",  # Judul grafik
-                  col = rainbow(15))        # Warna batang
-#gatau butuh atau ga
-freq.itemset <- apriori(cust_bersih_1, parameter = list(support=0.3, conf= 0.8, minlen=2, target="frequent"))
-freq.itemset
+itemFrequencyPlot(cust_bersih_1.tr, topN = 15, type = "absolute", ylim = c(0, 7000), main = "Top 15 Layanan Telco", col = rainbow(15))
+
+# Membuat aturan asosiasi
+freq.itemset <- apriori(cust_bersih_1, parameter = list(support = 0.3, conf = 0.8, minlen = 2, target = "frequent"))
 inspect(freq.itemset)
 
-# Membuat aturan asosiasi menggunakan algoritma Apriori medium (hasil lift nya paling besar)
-rules <- apriori(cust_bersih_1.tr,
-                 parameter = list(supp = 0.03, conf = 0.8, minlen = 2))
-# Melihat ringkasan aturan yang ditemukan
-summary(rules)
-# Menampilkan 5 aturan dengan confidence tertinggi
-inspect(head(sort(rules, by = "confidence"), 5))
-
-#rules spesifik 1 (hasil lift 1.85)
+# Aturan asosiasi dengan "StreamingMovies=Yes"
 rules1 <- apriori(cust_bersih_1.tr, 
                   parameter = list(supp = 0.2, conf = 0.5),
                   appearance = list(default = "lhs", rhs = c("StreamingMovies=Yes")),
@@ -135,15 +119,10 @@ rules1 <- apriori(cust_bersih_1.tr,
 rules1 <- sort(rules1, decreasing = TRUE, by = "confidence")
 inspect(rules1)
 
-#rules spesifik 2 (hasil lift nya 1.84 paling gede)
-rules2<-apriori(cust_bersih_1, parameter=list(supp=0.2,conf = 0.5,minlen=2), appearance = list(default="rhs",lhs=c("StreamingMovies=Yes", "StreamingMovies=No")),control = list(verbose=F))
-rules2<-sort(rules2, decreasing=TRUE,by="confidence")
-inspect(rules2)
-
-#rules spesifik 1 (hasil lift 1.85)
-rules1 <- apriori(cust_bersih_1.tr, 
-                  parameter = list(supp = 0.3, conf = 0.7),
-                  appearance = list(default = "lhs", rhs = c("PhoneService=Yes")),
+# Aturan asosiasi dengan kombinasi "StreamingMovies"
+rules2 <- apriori(cust_bersih_1, 
+                  parameter = list(supp = 0.2, conf = 0.5, minlen = 2), 
+                  appearance = list(default = "rhs", lhs = c("StreamingMovies=Yes", "StreamingMovies=No")),
                   control = list(verbose = FALSE))
-rules1 <- sort(rules1, decreasing = TRUE, by = "confidence")
-inspect(rules1)
+rules2 <- sort(rules2, decreasing = TRUE, by = "confidence")
+inspect(rules2)
