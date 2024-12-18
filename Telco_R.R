@@ -10,7 +10,7 @@ library(arulesViz)   # Visualisasi untuk model association
 
 # 1. IMPORT DATA AWAL
 # ================================
-data <- read.csv("path kalian menyimpan data/telcoo.csv")
+data <- read.csv("C:/Users/anast/OneDrive/Documents/ITE/SEMESTER 3/DAP/telco_data.csv")
 
 # Melihat struktur data
 str(data)
@@ -40,8 +40,9 @@ names(cust_bersih)[names(cust_bersih) == "customerid"] <- "CustomerID"
 names(cust_bersih)[names(cust_bersih) == "gender"] <- "Gender"
 names(cust_bersih)[names(cust_bersih) == "tenure"] <- "Tenure"
 
-# Mengubah `SeniorCitizen` menjadi kategori "No" dan "Yes"
-cust_bersih$SeniorCitizen <- ifelse(cust_bersih$SeniorCitizen == 0, "No", "Yes")
+#mengubah isi data kolom SeniorCitizen dengan mengganti 0 menjadi No dan 1 menjadi Yes
+cust_bersih$SeniorCitizen[cust_bersih$SeniorCitizen == 0] <- "No"
+cust_bersih$SeniorCitizen[cust_bersih$SeniorCitizen == 1] <- "Yes"
 
 # Transformasi tipe data numerik untuk TotalCharges jika diperlukan
 cust_bersih$TotalCharges <- as.numeric(as.character(cust_bersih$TotalCharges))
@@ -107,22 +108,42 @@ cust_bersih_1.tr <- as(cust_bersih_1, "transactions")
 # Membuat grafik frekuensi item
 itemFrequencyPlot(cust_bersih_1.tr, topN = 15, type = "absolute", ylim = c(0, 7000), main = "Top 15 Layanan Telco", col = rainbow(15))
 
-# Membuat aturan asosiasi
-freq.itemset <- apriori(cust_bersih_1, parameter = list(support = 0.3, conf = 0.8, minlen = 2, target = "frequent"))
+# Membuat aturan asosiasi (Rules umum)
+freq.itemset <- apriori(cust_bersih_1, parameter = list(support=0.3, conf= 0.8, minlen=2, target="rules"))
+freq.itemset
 inspect(freq.itemset)
 
-# Aturan asosiasi dengan "StreamingMovies=Yes"
-rules1 <- apriori(cust_bersih_1.tr, 
-                  parameter = list(supp = 0.2, conf = 0.5),
-                  appearance = list(default = "lhs", rhs = c("StreamingMovies=Yes")),
+# Aturan asosiasi dengan kombinasi "StreamingMovies"
+rules1 <- apriori(cust_bersih_1, 
+                  parameter = list(supp = 0.2, conf = 0.5, minlen = 2), 
+                  appearance = list(default = "rhs", lhs = c("StreamingMovies=Yes", "StreamingMovies=No")),
                   control = list(verbose = FALSE))
 rules1 <- sort(rules1, decreasing = TRUE, by = "confidence")
 inspect(rules1)
 
-# Aturan asosiasi dengan kombinasi "StreamingMovies"
-rules2 <- apriori(cust_bersih_1, 
-                  parameter = list(supp = 0.2, conf = 0.5, minlen = 2), 
-                  appearance = list(default = "rhs", lhs = c("StreamingMovies=Yes", "StreamingMovies=No")),
-                  control = list(verbose = FALSE))
-rules2 <- sort(rules2, decreasing = TRUE, by = "confidence")
-inspect(rules2)
+# Membuat aturan asosiasi dengan support ≥ 3% dan confidence ≥ 80% yang akan dihasilkan.
+rules <- apriori(cust_bersih_1.tr,
+                 parameter = list(supp = 0.03, conf = 0.8, minlen = 2))
+# Melihat ringkasan aturan yang ditemukan
+summary(rules)
+# Menampilkan 5 aturan dengan confidence tertinggi
+inspect(head(sort(rules, by = "confidence"), 5))
+
+# VISUALISASI RULES
+# ================================
+#Visualisasi rules1
+plot(rules1, method = "graph", control = list(type = "items"), 
+     main = "Graph-Based Visualization of Rules")
+
+# Scatter plot aturan asosiasi
+plot(rules1, method = "grouped", main = "Grouped Matrix Plot of Rules")
+
+#Visualisasi Top Rules
+# Scatter plot
+plot(rules, method = "scatterplot", measure = c("support", "confidence"), shading = "lift", main = "Scatter Plot Rules")
+
+# Graph plot
+plot(rules, method = "graph", control = list(type = "items"), main = "Graph Plot Rules")
+
+# Grouped Matrix Plot
+plot(rules, method = "grouped", main = "Grouped Matrix Plot Rules")
