@@ -123,69 +123,22 @@ rules1 <- apriori(cust_bersih_1,
 rules1 <- sort(rules1, decreasing = TRUE, by = "confidence")
 inspect(rules1)
 
-# Membuat aturan dengan support dan confidence rendah untuk analisis lebih luas
-rules_all <- apriori(cust_bersih_1.tr, 
-                     parameter = list(supp = 0.01, conf = 0.5, minlen = 2))
+#Top Rules dengan Lift > 2
+# Minimum support = 0.01 (1%) dan confidence = 0.3 (30%)
+rules <- apriori(cust_bersih_1.tr, 
+                 parameter = list(supp = 0.01, conf = 0.3, minlen = 2, target = "rules"))
 
-# Menyaring aturan dengan lift > 1 (menunjukkan hubungan yang menarik)
-rules_filtered <- subset(rules_all, lift > 1)
+#Filter rules dengan lift > 2
+rules_lift <- subset(rules, lift > 2)
 
-# Menampilkan ringkasan aturan
-summary(rules_filtered)
+#Sort rules berdasarkan lift (dari yang terbesar ke terkecil)
+rules_lift <- sort(rules_lift, by = "lift", decreasing = TRUE)
 
-# Mengambil aturan dengan kombinasi terbaik (support, confidence, dan lift tinggi)
-top_10_rules <- sort(rules_filtered, by = c("confidence", "lift"), 
-                      decreasing = TRUE)[1:10]
-inspect(top_10_rules)
+#Inspeksi Top 10 Rules dengan lift > 2
+top_rules <- head(rules_lift, n = 10)
+inspect(top_rules)
 
-# 6. ANALISIS SEGMENTASI PELANGGAN
-# =======================================================
-# Membuat segmentasi berdasarkan layanan internet
-cust_segment_fiber <- cust_bersih %>% filter(InternetService == "Fiber optic")
-cust_segment_dsl <- cust_bersih %>% filter(InternetService == "DSL")
-cust_segment_no_internet <- cust_bersih %>% filter(InternetService == "No")
-
-# Menghitung distribusi churn untuk setiap segmen
-segment_summary <- cust_bersih %>%
-  group_by(InternetService) %>%
-  summarise(
-    Total = n(),
-    Churn_Yes = sum(Churn == "Yes"),
-    Churn_No = sum(Churn == "No"),
-    Churn_Rate = Churn_Yes / Total
-  )
-print(segment_summary)
-
-# 7. VISUALISASI POLA CHURN BERDASARKAN SEGMENTASI
-# =======================================================
-# Grafik churn berdasarkan jenis layanan internet
-ggplot(segment_summary, aes(x = InternetService, y = Churn_Rate, fill = InternetService)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Tingkat Churn Berdasarkan Jenis Layanan Internet",
-       x = "Jenis Layanan Internet",
-       y = "Tingkat Churn") +
-  theme_minimal()
-
-# 8. ANALISIS ATURAN BERDASARKAN SEGMENTASI
-# =======================================================
-# Mengonversi segmen pelanggan Fiber optic menjadi transaksi
-fiber_tr <- as(cust_segment_fiber %>% select(-Churn), "transactions")
-
-# Membuat aturan untuk segmen Fiber optic
-rules_fiber <- apriori(fiber_tr, 
-                       parameter = list(supp = 0.02, conf = 0.6, minlen = 2))
-
-# Menyaring aturan dengan lift > 1.5
-rules_fiber_filtered <- subset(rules_fiber, lift > 1.5)
-inspect(sort(rules_fiber_filtered, by = "confidence")[1:5])
-
-# 9. MENGGABUNGKAN WAWASAN
-# =======================================================
-# Membandingkan aturan penting di semua segmen
-inspect(sort(rules_filtered, by = "lift")[1:5])
-inspect(sort(rules_fiber_filtered, by = "lift")[1:5])
-
-# 10. VISUALISASI RULES
+# 6. VISUALISASI RULES
 # ================================
 # Visualisasi rules1
 plot(rules1, method = "graph", control = list(type = "items"), 
