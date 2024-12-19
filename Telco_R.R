@@ -10,7 +10,7 @@ library(arulesViz)   # Visualisasi untuk model association
 
 # 1. IMPORT DATA AWAL
 # ================================
-data <- read.csv("C:/Users/anast/OneDrive/Documents/ITE/SEMESTER 3/DAP/telcoo.csv")
+data <- read.csv("C:/Users/anast/OneDrive/Documents/ITE/SEMESTER 3/DAP/telco_data.csv")
 
 # Melihat struktur data
 str(data)
