@@ -1,25 +1,26 @@
-# Telco Customer Churn Analysis
+# Telco Customer Analysis
 
-This project analyzes customer churn data from a telecommunications company using R. The analysis includes data cleaning, visualization, and association rules mining to understand patterns in customer behavior and service usage.
+Proyek ini melakukan analisis terhadap data pelanggan Telco menggunakan R. Analisis mencakup pembersihan data, visualisasi, dan penerapan aturan asosiasi.
 
 ## Requirements
 
-The following R libraries are required:
+library r yang digunakan:
+
 
 ```R
-library(caret)       # Data cleaning
-library(dplyr)       # Data manipulation
-library(tidyverse)   # Data wrangling
-library(ggplot2)     # Data visualization
-library(reshape2)    # Reshape data
-library(GGally)      # Additional visualization for pair plots
-library(arules)      # Membuat model association
-library(arulesViz)   # Visualisasi untuk model association
+library(caret)       # Pembersihan data
+library(dplyr)       # Manipulasi data
+library(tidyverse)   # Pengolahan data
+library(ggplot2)     # Visualisasi data
+library(reshape2)    # Mengubah bentuk data
+library(GGally)      # Visualisasi tambahan untuk plot pasangan
+library(arules)      # Membuat model asosiasi
+library(arulesViz)   # Visualisasi untuk model asosiasi
 ```
 
-## 1. Data Import
+## 1. Import Data 
 
-Import the initial dataset:
+Import dataset:
 
 ```R
 data <- read.csv("C:/Users/anast/OneDrive/Documents/ITE/SEMESTER 3/DAP/telco_data.csv")
@@ -32,7 +33,7 @@ summary(data)
 
 ## 2. Data Cleaning
 
-Check for duplicates and missing values:
+Mnegecek duplikat dan nilai yang hilang:
 
 ```R
 # Mengecek data duplikat
@@ -47,9 +48,9 @@ cust_bersih <- data[complete.cases(data), ]
 cat("Nilai yang hilang setelah dibersihkan:", sum(is.na(cust_bersih)), "\n")
 ```
 
-## 3. Data Type Conversion and Column Standardization
+## 3. Mengubah Tipe Data dan Menyeragamkan Nama Kolom
 
-Standardize column names and convert data types:
+Standarisasi nama kolom dan konversi tipe data:
 
 ```R
 # Menyeragamkan nama kolom
@@ -77,9 +78,9 @@ cust_bersih[cols_to_factor] <- lapply(cust_bersih[cols_to_factor], factor)
 str(cust_bersih)
 ```
 
-## 4. Data Visualization
+## 4. Data Visualisasi
 
-Create various visualizations to understand the data:
+Buat berbagai visualisasi untuk memahami data:
 
 ```R
 # Membuat grafik batang untuk kolom Churn
@@ -118,9 +119,7 @@ ggplot(cust_bersih, aes(x = MonthlyCharges, fill = Churn)) +
   theme_minimal()
 ```
 
-## 5. Association Rules Analysis
-
-Perform association rules mining:
+## 5. Association Rules Analisis
 
 ```R
 # Memilih kolom layanan untuk association rules
@@ -166,9 +165,9 @@ top_rules <- head(rules_lift, n = 10)
 inspect(top_rules)
 ```
 
-## 6. Rules Visualization
+## 6. Rules Visualisasi
 
-Visualize the association rules:
+Visualisai untuk rules:
 
 ```R
 # Visualisasi rules1
@@ -190,3 +189,48 @@ plot(rules, method = "graph", control = list(type = "items"),
 # Grouped Matrix Plot
 plot(rules, method = "grouped", main = "Grouped Matrix Plot Rules")
 ```
+
+
+## Kesimpulan
+
+### Faktor-Faktor Utama yang Mempengaruhi Churn
+
+1. Durasi Berlangganan:
+   - Pelanggan dengan durasi berlangganan pendek (0-20 bulan) memiliki risiko churn yang lebih tinggi
+   - Pelanggan yang bertahan lebih lama (sekitar 60 bulan) menunjukkan loyalitas yang lebih tinggi
+   - Periode kritis untuk retensi pelanggan adalah 20 bulan pertama
+
+2. Monthly Charges:
+   - Pelanggan yang churn memiliki rata-rata tagihan bulanan yang lebih tinggi (median 75-80)
+   - Pelanggan yang bertahan memiliki tagihan bulanan yang lebih rendah (median 60-65)
+   - Semakin tinggi biaya bulanan, semakin tinggi kemungkinan churn
+
+3. Gender:
+   - Tidak ada perbedaan signifikan dalam pola churn antara pelanggan pria dan wanita
+   - Gender bukan merupakan faktor dominan dalam keputusan churn
+
+### Pola Hubungan Layanan
+
+ Association Rules Analysis menunjukkan:
+   - Terdapat hubungan kuat antara penggunaan StreamingMovies dan PhoneService
+   - Pelanggan tanpa layanan internet cenderung tidak menggunakan layanan tambahan
+   - Rules dengan lift > 4 mengindikasikan korelasi kuat antar layanan tertentu
+
+### Rekomendasi untuk Perusahaan
+
+1. Program Retensi Pelanggan:
+   - Fokus pada pelanggan yang tidak menggunakan PhoneService
+   - Implementasi program khusus untuk 20 bulan pertama masa berlangganan
+   - Pengembangan program loyalty reward untuk pelanggan >20 bulan
+
+2. Strategi Layanan:
+   - Menawarkan bundling layanan dengan kombinasi PhoneService, TechSupport, dan DeviceProtection
+   - Meningkatkan edukasi tentang OnlineSecurity dan TechSupport, terutama untuk pelanggan DSL
+   - Evaluasi struktur harga untuk pelanggan dengan monthly charges tinggi
+
+3. Pengembangan Produk:
+   - Desain paket layanan yang lebih terjangkau untuk periode awal berlangganan
+   - Fokus pada edukasi manfaat layanan tambahan
+   - Implementasi strategi cross-selling berdasarkan pola penggunaan layanan
+
+
