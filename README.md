@@ -91,7 +91,7 @@ ggplot(cust_bersih, aes(x = Churn, fill = Churn)) +
   scale_fill_manual(values = c("No" = "seagreen3", "Yes" = "coral2"))
 
 #Berikut Hasil plot
-![](Visualisasidata1)
+![](Visualisasidata1.png)
 
 # Distribusi churn berdasarkan Gender
 ggplot(cust_bersih, aes(x = Gender, fill = Churn)) +
