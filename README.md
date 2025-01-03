@@ -90,6 +90,9 @@ ggplot(cust_bersih, aes(x = Churn, fill = Churn)) +
   theme_minimal() +
   scale_fill_manual(values = c("No" = "seagreen3", "Yes" = "coral2"))
 
+#Berikut Hasil plot
+![image](https://github.com/user-attachments/assets/0ee2443f-11f0-48ba-a1c7-34090967ccb5)
+
 # Distribusi churn berdasarkan Gender
 ggplot(cust_bersih, aes(x = Gender, fill = Churn)) +
   geom_bar(position = "dodge") +
